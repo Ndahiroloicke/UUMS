@@ -27,7 +27,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -39,6 +38,7 @@ public class BillService {
     private final MeterRepository meterRepository;
     private final MeterReadingRepository meterReadingRepository;
     private final TariffRepository tariffRepository;
+    private final TariffTierRepository tariffTierRepository;
     private final ServiceChargeRepository serviceChargeRepository;
     private final TaxRepository taxRepository;
     private final UserRepository userRepository;
@@ -133,16 +133,25 @@ public class BillService {
     public BillResponse approveBill(Long billId) {
         Bill bill = findById(billId);
 
-        if (bill.getStatus() != BillStatus.PENDING) {
-            throw new BusinessRuleException("Only PENDING bills can be approved.");
+        if (bill.getStatus() == BillStatus.PAID) {
+            throw new BusinessRuleException("Paid bills cannot be approved.");
+        }
+        if (bill.getStatus() != BillStatus.PENDING && bill.getStatus() != BillStatus.PARTIALLY_PAID) {
+            throw new BusinessRuleException("Only PENDING or PARTIALLY_PAID bills can be approved.");
         }
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User approver = userRepository.findByEmail(email).orElse(null);
 
-        bill.setStatus(BillStatus.APPROVED);
         bill.setApprovedBy(approver);
         bill.setApprovedAt(java.time.LocalDateTime.now());
+
+        // APPROVED = reviewed, nothing paid yet | PARTIALLY_PAID = reviewed, some amount still owed
+        if (bill.getAmountPaid().compareTo(BigDecimal.ZERO) > 0) {
+            bill.setStatus(BillStatus.PARTIALLY_PAID);
+        } else {
+            bill.setStatus(BillStatus.APPROVED);
+        }
 
         return mapToResponse(billRepository.save(bill));
     }
@@ -275,20 +284,23 @@ public class BillService {
             return consumption.multiply(tariff.getFlatRate()).setScale(2, RoundingMode.HALF_UP);
         }
 
-        // Tier-based calculation
+        List<TariffTier> tiers = tariffTierRepository.findByTariffIdOrderByTierOrder(tariff.getId());
+        if (tiers.isEmpty()) {
+            throw new BusinessRuleException("No tiers configured for tier-based tariff: " + tariff.getName());
+        }
+
         BigDecimal total = BigDecimal.ZERO;
         BigDecimal remaining = consumption;
 
-        List<TariffTier> tiers = tariff.getTiers().stream()
-                .sorted(Comparator.comparingInt(TariffTier::getTierOrder))
-                .toList();
-
         for (TariffTier tier : tiers) {
-            if (remaining.compareTo(BigDecimal.ZERO) <= 0) break;
+            if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
 
             BigDecimal tierMin = tier.getMinConsumption();
             BigDecimal tierMax = tier.getMaxConsumption();
 
+            // Each tier covers units from min (inclusive) to max (exclusive upper bound in brackets)
             BigDecimal tierCapacity = (tierMax != null)
                     ? tierMax.subtract(tierMin)
                     : remaining;

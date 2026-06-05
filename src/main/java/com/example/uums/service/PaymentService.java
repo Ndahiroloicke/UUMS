@@ -63,6 +63,8 @@ public class PaymentService {
 
         if (balanceAfterPayment.compareTo(BigDecimal.ZERO) <= 0) {
             bill.setStatus(BillStatus.PAID);
+        } else if (bill.getStatus() != BillStatus.OVERDUE) {
+            bill.setStatus(BillStatus.PARTIALLY_PAID);
         }
 
         billRepository.save(bill);
