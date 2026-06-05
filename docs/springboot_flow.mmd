@@ -1,0 +1,182 @@
+---
+title: WASAC/REG Utility Billing System — Spring Boot Flow
+---
+
+flowchart TB
+    subgraph Client["Client Layer"]
+        WEB["Web / Mobile Client"]
+        SWAGGER["Swagger UI\n/swagger-ui.html"]
+    end
+
+    subgraph Security["Security Layer"]
+        JWT_FILTER["JwtAuthFilter\n(Bearer Token)"]
+        SEC_CONFIG["SecurityConfig\nStateless JWT"]
+        ROLES["Role-Based Access\nADMIN | OPERATOR | FINANCE | CUSTOMER"]
+    end
+
+    subgraph API["REST Controllers"]
+        AUTH_C["AuthController\n/api/auth"]
+        USER_C["UserController\n/api/users"]
+        CUST_C["CustomerController\n/api/customers"]
+        METER_C["MeterController\n/api/meters"]
+        READ_C["MeterReadingController\n/api/meter-readings"]
+        TARIFF_C["TariffController\n/api/tariffs"]
+        BILL_C["BillController\n/api/bills"]
+        PAY_C["PaymentController\n/api/payments"]
+        NOTIF_C["NotificationController\n/api/notifications"]
+    end
+
+    subgraph Service["Service Layer (Business Rules)"]
+        AUTH_S["AuthService\nSignup → ROLE_CUSTOMER\nLogin → JWT"]
+        USER_S["UserService\nAdmin updates roles/status"]
+        CUST_S["CustomerService\nNo duplicate National ID\nInactive → no bills"]
+        METER_S["MeterService\nUnique meter number\nActive meter required"]
+        READ_S["MeterReadingService\ncurrent > previous\n1 reading/meter/month"]
+        TARIFF_S["TariffService\nVersioned tariffs\nFlat or tier-based"]
+        BILL_S["BillService\nCalculate bill amounts\nApprove bills"]
+        PAY_S["PaymentService\nFull & partial payments\nBalance snapshot"]
+        NOTIF_S["NotificationService\nIn-app + SMTP email"]
+    end
+
+    subgraph Data["Data Access Layer"]
+        REPO["Spring Data JPA Repositories"]
+        EM["EntityManager\n(native SQL / procedures)"]
+    end
+
+    subgraph DB["PostgreSQL Database"]
+        TABLES[("Tables\nusers, customers, meters,\nmeter_readings, tariffs,\ntariff_tiers, service_charges,\ntaxes, penalties, bills,\npayments, notifications")]
+        TRIG_BILL["Trigger: fn_notify_on_bill_generation\nAFTER INSERT on bills"]
+        TRIG_PAID["Trigger: fn_set_bill_paid_on_zero_balance\nBEFORE UPDATE on bills"]
+        TRIG_NOTIFY["Trigger: fn_notify_on_bill_paid\nAFTER UPDATE status on bills"]
+        PROC_PEN["Stored Procedure:\napply_overdue_penalties()\n(cursor over overdue bills)"]
+    end
+
+    subgraph External["External Services"]
+        SMTP["SMTP Mail Server\n(Gmail / spring.mail.*)"]
+        FLYWAY["Flyway Migrations\nV1 Schema | V2 Routines\nV3 Seed | V4 Payments"]
+    end
+
+    subgraph Scheduler["Scheduled Jobs"]
+        CRON["@Scheduled daily 01:00\nBillService.applyOverduePenalties()"]
+    end
+
+    %% Client to Security
+    WEB --> JWT_FILTER
+    SWAGGER --> JWT_FILTER
+    JWT_FILTER --> SEC_CONFIG
+    SEC_CONFIG --> ROLES
+
+    %% Security to Controllers
+    ROLES --> AUTH_C
+    ROLES --> USER_C
+    ROLES --> CUST_C
+    ROLES --> METER_C
+    ROLES --> READ_C
+    ROLES --> TARIFF_C
+    ROLES --> BILL_C
+    ROLES --> PAY_C
+    ROLES --> NOTIF_C
+
+    %% Controllers to Services
+    AUTH_C --> AUTH_S
+    USER_C --> USER_S
+    CUST_C --> CUST_S
+    METER_C --> METER_S
+    READ_C --> READ_S
+    TARIFF_C --> TARIFF_S
+    BILL_C --> BILL_S
+    PAY_C --> PAY_S
+    NOTIF_C --> NOTIF_S
+
+    %% Services to Data
+    AUTH_S --> REPO
+    USER_S --> REPO
+    CUST_S --> REPO
+    METER_S --> REPO
+    READ_S --> REPO
+    TARIFF_S --> REPO
+    BILL_S --> REPO
+    BILL_S --> EM
+    PAY_S --> REPO
+    NOTIF_S --> REPO
+
+    %% Data to DB
+    REPO --> TABLES
+    EM --> PROC_PEN
+    EM --> TABLES
+
+    %% DB triggers
+    TABLES --> TRIG_BILL
+    TABLES --> TRIG_PAID
+    TABLES --> TRIG_NOTIFY
+    TRIG_BILL --> TABLES
+    TRIG_PAID --> TABLES
+    TRIG_NOTIFY --> TABLES
+    PROC_PEN --> TABLES
+
+    %% Notifications
+    BILL_S --> NOTIF_S
+    PAY_S --> NOTIF_S
+    NOTIF_S --> SMTP
+    TRIG_BILL -.-> TABLES
+    TRIG_NOTIFY -.-> TABLES
+
+    %% Scheduler
+    CRON --> BILL_S
+
+    %% Startup
+    FLYWAY --> TABLES
+
+    %% ============================================================
+    %% FUNCTIONAL FLOWS (numbered paths)
+    %% ============================================================
+
+    subgraph Flow1["Flow 1: Authentication"]
+        direction LR
+        F1A["POST /api/auth/register"] --> F1B["Assign ROLE_CUSTOMER"]
+        F1B --> F1C["Save user (BCrypt password)"]
+        F1C --> F1D["POST /api/auth/login"]
+        F1D --> F1E["Return JWT token"]
+    end
+
+    subgraph Flow2["Flow 2: Meter Reading → Bill"]
+        direction LR
+        F2A["OPERATOR captures reading"] --> F2B["Validate meter active\n& reading rules"]
+        F2B --> F2C["FINANCE/ADMIN generates bill"]
+        F2C --> F2D["Apply tariff + tax + service charge"]
+        F2D --> F2E["Save bill → DB trigger notification"]
+        F2E --> F2F["Send bill email to customer"]
+        F2F --> F2G["FINANCE/ADMIN approves bill"]
+    end
+
+    subgraph Flow3["Flow 3: Payment"]
+        direction LR
+        F3A["FINANCE records payment"] --> F3B["Full or partial amount"]
+        F3B --> F3C["Update bill balance\n& store payment snapshot"]
+        F3C --> F3D{"Balance = 0?"}
+        F3D -->|Yes| F3E["Status → PAID\nDB trigger + email"]
+        F3D -->|No| F3F["Partial payment\nin-app + email"]
+    end
+
+    subgraph Flow4["Flow 4: Late Penalties"]
+        direction LR
+        F4A["ADMIN configures penalty rate"] --> F4B["Daily cron OR\nPOST /api/bills/apply-penalties"]
+        F4B --> F4C["CALL apply_overdue_penalties()"]
+        F4C --> F4D["Cursor over overdue bills\nApply penalty + notify"]
+    end
+
+    AUTH_S -.-> Flow1
+    READ_S -.-> Flow2
+    BILL_S -.-> Flow2
+    PAY_S -.-> Flow3
+    TARIFF_S -.-> Flow4
+    BILL_S -.-> Flow4
+
+    %% Role permissions legend
+    subgraph Legend["Role Permissions Summary"]
+        direction TB
+        L1["ADMIN: Configure tariffs/taxes/penalties, manage users, all operations"]
+        L2["OPERATOR: Capture meter readings, view customers/meters"]
+        L3["FINANCE: Generate/approve bills, record payments, trigger penalties"]
+        L4["CUSTOMER: View own bills, payments, notifications"]
+    end

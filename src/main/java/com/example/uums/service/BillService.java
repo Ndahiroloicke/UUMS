@@ -2,11 +2,13 @@ package com.example.uums.service;
 
 import com.example.uums.dto.request.GenerateBillRequest;
 import com.example.uums.dto.response.BillResponse;
+import com.example.uums.dto.response.PenaltyApplicationResponse;
 import com.example.uums.entity.*;
 import com.example.uums.enums.BillStatus;
 import com.example.uums.enums.CustomerStatus;
 import com.example.uums.enums.MeterStatus;
 import com.example.uums.enums.TariffType;
+import com.example.uums.enums.UserRole;
 import com.example.uums.exception.BusinessRuleException;
 import com.example.uums.exception.DuplicateResourceException;
 import com.example.uums.exception.ResourceNotFoundException;
@@ -14,7 +16,12 @@ import com.example.uums.repository.*;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+
+import java.sql.CallableStatement;
+import java.sql.Types;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +46,7 @@ public class BillService {
     private final ServiceChargeRepository serviceChargeRepository;
     private final TaxRepository taxRepository;
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final EntityManager entityManager;
     private final NotificationService notificationService;
 
@@ -145,20 +153,33 @@ public class BillService {
 
     @Transactional(readOnly = true)
     public List<BillResponse> getBillsByCustomer(Long customerId) {
+        validateCustomerBillAccess(customerId);
         return billRepository.findByCustomerIdOrderByBillingPeriodDesc(customerId).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
+    public List<BillResponse> getBillsForCurrentUser() {
+        Customer customer = resolveCurrentCustomer();
+        return billRepository.findByCustomerIdOrderByBillingPeriodDesc(customer.getId()).stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public BillResponse getBillById(Long id) {
-        return mapToResponse(findById(id));
+        Bill bill = findById(id);
+        validateCustomerBillAccess(bill.getCustomer().getId());
+        return mapToResponse(bill);
     }
 
     @Transactional(readOnly = true)
     public BillResponse getBillByReference(String reference) {
-        return mapToResponse(billRepository.findByBillReference(reference)
-                .orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + reference)));
+        Bill bill = billRepository.findByBillReference(reference)
+                .orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + reference));
+        validateCustomerBillAccess(bill.getCustomer().getId());
+        return mapToResponse(bill);
     }
 
     @Transactional(readOnly = true)
@@ -180,10 +201,81 @@ public class BillService {
     /** Scheduled daily at 01:00 AM — calls stored procedure to apply overdue penalties */
     @Scheduled(cron = "0 0 1 * * *")
     @Transactional
-    public void applyOverduePenalties() {
-        log.info("Running apply_overdue_penalties stored procedure...");
-        entityManager.createNativeQuery("CALL apply_overdue_penalties()").executeUpdate();
-        log.info("Overdue penalties applied.");
+    public void applyOverduePenaltiesScheduled() {
+        PenaltyApplicationResponse result = applyOverduePenalties();
+        log.info("Scheduled penalty run: {} bill(s) penalized — {}", result.getBillsPenalized(), result.getDetails());
+    }
+
+    @Transactional
+    public PenaltyApplicationResponse applyOverduePenalties() {
+        List<Long> eligibleBillIds = billRepository.findBillIdsEligibleForPenalty();
+
+        int billsPenalized = entityManager.unwrap(Session.class).doReturningWork(connection -> {
+            try (CallableStatement cs = connection.prepareCall("{call apply_overdue_penalties(?)}")) {
+                cs.registerOutParameter(1, Types.INTEGER);
+                cs.execute();
+                return cs.getInt(1);
+            }
+        });
+
+        if (billsPenalized > 0) {
+            eligibleBillIds.forEach(this::sendPenaltyEmailNotification);
+        }
+
+        String details = billsPenalized > 0
+                ? billsPenalized + " bill(s) penalized. penalty_amount, total_amount, and outstanding_balance were increased. Customers were notified in-app and by email."
+                : "No bills penalized. Eligible bills must be unpaid, have outstanding balance > 0, and be past due_date + grace_period_days (30 days after due date by default).";
+
+        return PenaltyApplicationResponse.builder()
+                .billsPenalized(billsPenalized)
+                .details(details)
+                .build();
+    }
+
+    private void sendPenaltyEmailNotification(Long billId) {
+        billRepository.findById(billId).ifPresent(bill -> {
+            String period = bill.getBillingPeriod().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+            String message = "Dear " + bill.getCustomer().getFullNames() + ",\nYour " + period +
+                    " utility bill (" + bill.getBillReference() + ") is OVERDUE.\n" +
+                    "A late payment penalty has been applied.\n" +
+                    "New outstanding balance: " + bill.getOutstandingBalance() + " FRW.\n" +
+                    "Please pay immediately to avoid further charges.";
+            notificationService.sendEmailSilently(
+                    bill.getCustomer().getEmail(),
+                    "Late Payment Penalty - " + bill.getBillReference(),
+                    message);
+        });
+    }
+
+    private Customer resolveCurrentCustomer() {
+        User user = getCurrentUser();
+        if (user == null) {
+            throw new BusinessRuleException("Authenticated user not found");
+        }
+        return customerRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new BusinessRuleException(
+                        "No customer profile linked to your account. Contact admin to link your user to a customer record."));
+    }
+
+    private void validateCustomerBillAccess(Long customerId) {
+        User user = getCurrentUser();
+        if (user == null || user.getRole() == UserRole.ROLE_ADMIN
+                || user.getRole() == UserRole.ROLE_FINANCE) {
+            return;
+        }
+        if (user.getRole() == UserRole.ROLE_CUSTOMER) {
+            Customer customer = customerRepository.findByUserId(user.getId())
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "No customer profile linked to your account."));
+            if (!customer.getId().equals(customerId)) {
+                throw new AccessDeniedException("You can only view your own bills");
+            }
+        }
+    }
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email).orElse(null);
     }
 
     private BigDecimal calculateConsumptionAmount(Tariff tariff, BigDecimal consumption) {

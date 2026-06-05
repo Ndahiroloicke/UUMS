@@ -1,0 +1,296 @@
+// ============================================================
+// WASAC / REG Utility Billing System (UUMS)
+// Entity Relationship Diagram — PostgreSQL
+// Import at: https://dbdiagram.io
+// ============================================================
+
+Project uums_db {
+  database_type: 'PostgreSQL'
+  Note: '''
+    Utility billing system for WASAC (water) and REG (electricity).
+    Managed by Spring Boot + Flyway migrations (V1–V4).
+  '''
+}
+
+// ------------------------------------------------------------
+// ENUMS (stored as VARCHAR in PostgreSQL)
+// ------------------------------------------------------------
+
+Enum user_role {
+  ROLE_ADMIN
+  ROLE_OPERATOR
+  ROLE_FINANCE
+  ROLE_CUSTOMER
+}
+
+Enum user_status {
+  ACTIVE
+  INACTIVE
+}
+
+Enum customer_status {
+  ACTIVE
+  INACTIVE
+}
+
+Enum meter_type {
+  WATER
+  ELECTRICITY
+}
+
+Enum meter_status {
+  ACTIVE
+  INACTIVE
+}
+
+Enum tariff_type {
+  FLAT
+  TIER_BASED
+}
+
+Enum bill_status {
+  PENDING
+  APPROVED
+  PAID
+  OVERDUE
+}
+
+Enum payment_method {
+  CASH
+  MOBILE_MONEY
+  BANK_TRANSFER
+  CARD
+}
+
+// ------------------------------------------------------------
+// SECURITY & USER MANAGEMENT
+// ------------------------------------------------------------
+
+Table users {
+  id bigint [pk, increment, note: 'BIGSERIAL']
+  full_names varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  phone_number varchar(20) [not null]
+  password varchar(255) [not null, note: 'BCrypt hashed']
+  role user_role [not null]
+  status user_status [not null, default: 'ACTIVE']
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Note: 'System login accounts. Signup auto-assigns ROLE_CUSTOMER.'
+}
+
+// ------------------------------------------------------------
+// CUSTOMER & METER MANAGEMENT
+// ------------------------------------------------------------
+
+Table customers {
+  id bigint [pk, increment]
+  full_names varchar(255) [not null]
+  national_id varchar(50) [not null, unique]
+  email varchar(255) [not null, unique]
+  phone_number varchar(20) [not null]
+  address text
+  status customer_status [not null, default: 'ACTIVE']
+  user_id bigint [unique, ref: > users.id, note: 'Optional link to login account']
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Note: 'Inactive customers cannot receive bills.'
+}
+
+Table meters {
+  id bigint [pk, increment]
+  meter_number varchar(100) [not null, unique]
+  meter_type meter_type [not null]
+  installation_date date [not null]
+  status meter_status [not null, default: 'ACTIVE']
+  customer_id bigint [not null, ref: > customers.id]
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Note: 'Each customer may have one or more meters.'
+}
+
+Table meter_readings {
+  id bigint [pk, increment]
+  meter_id bigint [not null, ref: > meters.id]
+  previous_reading decimal(12,2) [not null]
+  current_reading decimal(12,2) [not null]
+  consumption decimal(12,2) [not null, note: 'current_reading - previous_reading']
+  reading_date date [not null]
+  captured_by_id bigint [ref: > users.id, note: 'ROLE_OPERATOR']
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (meter_id, reading_date) [unique, name: 'idx_meter_reading_period', note: 'One reading per meter per month/year']
+  }
+
+  Note: '''
+    Business rules:
+    - current_reading > previous_reading
+    - meter must be ACTIVE
+    - one reading per meter per calendar month
+  '''
+}
+
+// ------------------------------------------------------------
+// TARIFF, TAX & PENALTY CONFIGURATION
+// ------------------------------------------------------------
+
+Table tariffs {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  meter_type meter_type [not null]
+  tariff_type tariff_type [not null]
+  flat_rate decimal(10,4) [note: 'Required when tariff_type = FLAT']
+  version int [not null, default: 1, note: 'Versioned — new tariffs apply to future cycles only']
+  effective_date date [not null]
+  end_date date
+  is_active boolean [not null, default: true]
+  created_by_id bigint [ref: > users.id, note: 'ROLE_ADMIN']
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table tariff_tiers {
+  id bigint [pk, increment]
+  tariff_id bigint [not null, ref: > tariffs.id]
+  min_consumption decimal(12,2) [not null]
+  max_consumption decimal(12,2) [note: 'NULL = unlimited upper tier']
+  rate decimal(10,4) [not null]
+  tier_order int [not null]
+
+  Note: 'Used when tariff_type = TIER_BASED'
+}
+
+Table service_charges {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  meter_type meter_type [not null]
+  amount decimal(10,2) [not null]
+  is_active boolean [not null, default: true]
+  effective_date date [not null]
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table taxes {
+  id bigint [pk, increment]
+  name varchar(100) [not null, note: 'e.g. VAT 18%']
+  rate decimal(5,4) [not null]
+  is_active boolean [not null, default: true]
+  effective_date date [not null]
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table penalties {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  rate decimal(5,4) [not null, note: 'e.g. 0.05 = 5% late fee']
+  grace_period_days int [not null, default: 30]
+  is_active boolean [not null, default: true]
+  effective_date date [not null]
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Note: 'Applied via stored procedure apply_overdue_penalties()'
+}
+
+// ------------------------------------------------------------
+// BILLING & PAYMENTS
+// ------------------------------------------------------------
+
+Table bills {
+  id bigint [pk, increment]
+  bill_reference varchar(100) [not null, unique]
+  customer_id bigint [not null, ref: > customers.id]
+  meter_id bigint [not null, ref: > meters.id]
+  meter_reading_id bigint [ref: > meter_readings.id]
+  billing_period date [not null, note: 'First day of billing month']
+  consumption decimal(12,2) [not null]
+  consumption_amount decimal(12,2) [not null]
+  service_charge_amount decimal(12,2) [not null, default: 0]
+  tax_amount decimal(12,2) [not null, default: 0]
+  penalty_amount decimal(12,2) [not null, default: 0]
+  total_amount decimal(12,2) [not null]
+  amount_paid decimal(12,2) [not null, default: 0]
+  outstanding_balance decimal(12,2) [not null]
+  status bill_status [not null, default: 'PENDING']
+  due_date date [not null]
+  approved_by_id bigint [ref: > users.id, note: 'ROLE_ADMIN or ROLE_FINANCE']
+  approved_at timestamp
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    customer_id [name: 'idx_bills_customer']
+    meter_id [name: 'idx_bills_meter']
+    status [name: 'idx_bills_status']
+  }
+
+  Note: '''
+    DB triggers:
+    - AFTER INSERT → insert notification (bill generated)
+    - BEFORE UPDATE outstanding_balance → set status PAID when balance = 0
+    - AFTER UPDATE status → insert notification (bill fully paid)
+  '''
+}
+
+Table payments {
+  id bigint [pk, increment]
+  payment_reference varchar(100) [not null, unique]
+  bill_id bigint [not null, ref: > bills.id]
+  amount_paid decimal(12,2) [not null]
+  payment_method payment_method [not null]
+  payment_date timestamp [not null]
+  outstanding_balance_after_payment decimal(12,2) [not null, note: 'Snapshot at time of payment (V4)']
+  processed_by_id bigint [ref: > users.id, note: 'ROLE_FINANCE']
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    bill_id [name: 'idx_payments_bill']
+  }
+
+  Note: 'Supports full and partial payments.'
+}
+
+// ------------------------------------------------------------
+// NOTIFICATIONS
+// ------------------------------------------------------------
+
+Table notifications {
+  id bigint [pk, increment]
+  customer_id bigint [not null, ref: > customers.id]
+  message text [not null]
+  is_read boolean [not null, default: false]
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    customer_id [name: 'idx_notifications_cust']
+  }
+
+  Note: '''
+    Created by:
+    - DB trigger on bill INSERT
+    - DB trigger on bill status → PAID
+    - Spring service on partial payment
+    - DB procedure on overdue penalty
+    Email sent separately via SMTP.
+  '''
+}
+
+// ------------------------------------------------------------
+// RELATIONSHIP SUMMARY
+// ------------------------------------------------------------
+
+// users 1 — 0..1 customers (optional portal account link)
+// customers 1 — * meters
+// meters 1 — * meter_readings
+// meters 1 — * bills
+// customers 1 — * bills
+// customers 1 — * notifications
+// meter_readings 1 — 0..1 bills
+// bills 1 — * payments
+// tariffs 1 — * tariff_tiers
+// users 1 — * meter_readings (captured_by)
+// users 1 — * bills (approved_by)
+// users 1 — * payments (processed_by)
+// users 1 — * tariffs (created_by)

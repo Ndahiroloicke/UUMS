@@ -42,4 +42,18 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
 
     @Query("SELECT b FROM Bill b WHERE b.status NOT IN ('PAID') AND b.dueDate < :today")
     List<Bill> findOverdueBills(@Param("today") LocalDate today);
+
+    @Query(value = """
+            SELECT b.id FROM bills b
+            WHERE b.status <> 'PAID'
+              AND b.outstanding_balance > 0
+              AND CURRENT_DATE > (b.due_date + (
+                  SELECT COALESCE(p.grace_period_days, 0)
+                  FROM penalties p
+                  WHERE p.is_active = TRUE
+                  ORDER BY p.effective_date DESC
+                  LIMIT 1
+              ) * INTERVAL '1 day')
+            """, nativeQuery = true)
+    List<Long> findBillIdsEligibleForPenalty();
 }
