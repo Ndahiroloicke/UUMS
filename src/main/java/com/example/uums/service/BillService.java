@@ -16,10 +16,6 @@ import com.example.uums.repository.*;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-
-import java.sql.CallableStatement;
-import java.sql.Types;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -210,13 +206,9 @@ public class BillService {
     public PenaltyApplicationResponse applyOverduePenalties() {
         List<Long> eligibleBillIds = billRepository.findBillIdsEligibleForPenalty();
 
-        int billsPenalized = entityManager.unwrap(Session.class).doReturningWork(connection -> {
-            try (CallableStatement cs = connection.prepareCall("{call apply_overdue_penalties(?)}")) {
-                cs.registerOutParameter(1, Types.INTEGER);
-                cs.execute();
-                return cs.getInt(1);
-            }
-        });
+        int billsPenalized = ((Number) entityManager
+                .createNativeQuery("SELECT apply_overdue_penalties()")
+                .getSingleResult()).intValue();
 
         if (billsPenalized > 0) {
             eligibleBillIds.forEach(this::sendPenaltyEmailNotification);
