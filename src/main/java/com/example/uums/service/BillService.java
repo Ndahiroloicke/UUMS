@@ -143,21 +143,25 @@ public class BillService {
         return mapToResponse(billRepository.save(bill));
     }
 
+    @Transactional(readOnly = true)
     public List<BillResponse> getBillsByCustomer(Long customerId) {
         return billRepository.findByCustomerIdOrderByBillingPeriodDesc(customerId).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public BillResponse getBillById(Long id) {
         return mapToResponse(findById(id));
     }
 
+    @Transactional(readOnly = true)
     public BillResponse getBillByReference(String reference) {
         return mapToResponse(billRepository.findByBillReference(reference)
                 .orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + reference)));
     }
 
+    @Transactional(readOnly = true)
     public List<BillResponse> getAllBills() {
         return billRepository.findAll().stream()
                 .map(this::mapToResponse)

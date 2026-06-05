@@ -1,6 +1,7 @@
 package com.example.uums.repository;
 
 import com.example.uums.entity.MeterReading;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +13,12 @@ import java.util.Optional;
 @Repository
 public interface MeterReadingRepository extends JpaRepository<MeterReading, Long> {
 
+    @EntityGraph(attributePaths = {"meter", "capturedBy"})
     List<MeterReading> findByMeterIdOrderByReadingDateDesc(Long meterId);
+
+    @Override
+    @EntityGraph(attributePaths = {"meter", "capturedBy"})
+    Optional<MeterReading> findById(Long id);
 
     @Query("SELECT mr FROM MeterReading mr WHERE mr.meter.id = :meterId " +
            "AND YEAR(mr.readingDate) = :year AND MONTH(mr.readingDate) = :month")

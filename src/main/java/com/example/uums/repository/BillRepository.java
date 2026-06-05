@@ -2,6 +2,7 @@ package com.example.uums.repository;
 
 import com.example.uums.entity.Bill;
 import com.example.uums.enums.BillStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,13 +15,23 @@ import java.util.Optional;
 @Repository
 public interface BillRepository extends JpaRepository<Bill, Long> {
 
+    @EntityGraph(attributePaths = {"customer", "meter", "approvedBy"})
     Optional<Bill> findByBillReference(String billReference);
 
+    @EntityGraph(attributePaths = {"customer", "meter", "approvedBy"})
     List<Bill> findByCustomerIdOrderByBillingPeriodDesc(Long customerId);
 
     List<Bill> findByMeterIdOrderByBillingPeriodDesc(Long meterId);
 
     List<Bill> findByStatus(BillStatus status);
+
+    @Override
+    @EntityGraph(attributePaths = {"customer", "meter", "approvedBy"})
+    List<Bill> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"customer", "meter", "approvedBy"})
+    Optional<Bill> findById(Long id);
 
     @Query("SELECT b FROM Bill b WHERE b.meter.id = :meterId " +
            "AND YEAR(b.billingPeriod) = :year AND MONTH(b.billingPeriod) = :month")

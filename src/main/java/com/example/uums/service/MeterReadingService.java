@@ -77,6 +77,7 @@ public class MeterReadingService {
         return mapToResponse(meterReadingRepository.save(reading));
     }
 
+    @Transactional(readOnly = true)
     public List<MeterReadingResponse> getReadingsByMeter(Long meterId) {
         if (!meterRepository.existsById(meterId)) {
             throw new ResourceNotFoundException("Meter not found with id: " + meterId);
@@ -86,6 +87,7 @@ public class MeterReadingService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public MeterReadingResponse getReadingById(Long id) {
         MeterReading reading = meterReadingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Meter reading not found with id: " + id));

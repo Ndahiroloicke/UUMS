@@ -42,6 +42,7 @@ public class MeterService {
         return mapToResponse(meterRepository.save(meter));
     }
 
+    @Transactional(readOnly = true)
     public List<MeterResponse> getMetersByCustomer(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("Customer not found with id: " + customerId);
@@ -51,12 +52,14 @@ public class MeterService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<MeterResponse> getAllMeters() {
         return meterRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public MeterResponse getMeterById(Long id) {
         return mapToResponse(findById(id));
     }

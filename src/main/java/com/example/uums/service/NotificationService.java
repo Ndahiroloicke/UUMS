@@ -21,12 +21,14 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
 
+    @Transactional(readOnly = true)
     public List<NotificationResponse> getNotificationsByCustomer(Long customerId) {
         return notificationRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<NotificationResponse> getUnreadByCustomer(Long customerId) {
         return notificationRepository.findByCustomerIdAndIsReadFalse(customerId).stream()
                 .map(this::mapToResponse)

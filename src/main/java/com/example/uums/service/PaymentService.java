@@ -101,6 +101,7 @@ public class PaymentService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public List<PaymentResponse> getPaymentsByBill(Long billId) {
         if (!billRepository.existsById(billId)) {
             throw new ResourceNotFoundException("Bill not found with id: " + billId);
@@ -110,6 +111,7 @@ public class PaymentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<PaymentResponse> getPaymentHistoryByCustomer(Long customerId) {
         return paymentRepository.findByCustomerId(customerId).stream()
                 .map(this::mapToResponse)
