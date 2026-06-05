@@ -95,6 +95,12 @@ public class TariffService {
 
     @Transactional
     public ServiceCharge createServiceCharge(CreateServiceChargeRequest request) {
+        serviceChargeRepository.findByMeterTypeAndIsActiveTrue(request.getMeterType())
+                .forEach(existing -> {
+                    existing.setIsActive(false);
+                    serviceChargeRepository.save(existing);
+                });
+
         return serviceChargeRepository.save(ServiceCharge.builder()
                 .name(request.getName())
                 .meterType(request.getMeterType())
@@ -110,6 +116,12 @@ public class TariffService {
 
     @Transactional
     public Tax createTax(CreateTaxRequest request) {
+        taxRepository.findByIsActiveTrue()
+                .forEach(existing -> {
+                    existing.setIsActive(false);
+                    taxRepository.save(existing);
+                });
+
         return taxRepository.save(Tax.builder()
                 .name(request.getName())
                 .rate(request.getRate())
@@ -124,6 +136,12 @@ public class TariffService {
 
     @Transactional
     public Penalty createPenalty(CreatePenaltyRequest request) {
+        penaltyRepository.findByIsActiveTrue()
+                .forEach(existing -> {
+                    existing.setIsActive(false);
+                    penaltyRepository.save(existing);
+                });
+
         return penaltyRepository.save(Penalty.builder()
                 .name(request.getName())
                 .rate(request.getRate())

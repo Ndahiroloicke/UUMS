@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,4 +20,6 @@ public interface ServiceChargeRepository extends JpaRepository<ServiceCharge, Lo
     Optional<ServiceCharge> findActiveByMeterType(
             @Param("meterType") MeterType meterType,
             @Param("date") LocalDate date);
+
+    List<ServiceCharge> findByMeterTypeAndIsActiveTrue(MeterType meterType);
 }

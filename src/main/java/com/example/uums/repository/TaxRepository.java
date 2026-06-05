@@ -18,4 +18,6 @@ public interface TaxRepository extends JpaRepository<Tax, Long> {
 
     @Query("SELECT t FROM Tax t WHERE t.isActive = true AND t.effectiveDate <= :date")
     List<Tax> findAllActiveTaxes(@Param("date") LocalDate date);
+
+    List<Tax> findByIsActiveTrue();
 }
