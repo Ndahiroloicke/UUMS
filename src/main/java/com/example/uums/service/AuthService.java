@@ -5,6 +5,7 @@ import com.example.uums.dto.request.RegisterUserRequest;
 import com.example.uums.dto.response.AuthResponse;
 import com.example.uums.dto.response.UserResponse;
 import com.example.uums.entity.User;
+import com.example.uums.enums.UserRole;
 import com.example.uums.enums.UserStatus;
 import com.example.uums.exception.BusinessRuleException;
 import com.example.uums.exception.DuplicateResourceException;
@@ -28,16 +29,18 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Email already registered: " + request.getEmail());
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("Email already registered: " + email);
         }
 
         User user = User.builder()
-                .fullNames(request.getFullNames())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
+                .fullNames(request.getFullNames().trim())
+                .email(email)
+                .phoneNumber(request.getPhoneNumber().trim())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(UserRole.ROLE_CUSTOMER)
                 .status(UserStatus.ACTIVE)
                 .build();
 
@@ -46,10 +49,12 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        String email = request.getEmail().trim().toLowerCase();
 
-        User user = userRepository.findByEmail(request.getEmail())
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessRuleException("User not found"));
 
         if (user.getStatus() == UserStatus.INACTIVE) {

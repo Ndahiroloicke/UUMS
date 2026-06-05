@@ -80,12 +80,14 @@ public class TariffService {
         return mapToResponse(tariffRepository.save(tariff));
     }
 
+    @Transactional(readOnly = true)
     public List<TariffResponse> getAllTariffs() {
         return tariffRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public TariffResponse getTariffById(Long id) {
         return mapToResponse(tariffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tariff not found with id: " + id)));

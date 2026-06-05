@@ -2,6 +2,7 @@ package com.example.uums.repository;
 
 import com.example.uums.entity.Tariff;
 import com.example.uums.enums.MeterType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,15 @@ import java.util.Optional;
 @Repository
 public interface TariffRepository extends JpaRepository<Tariff, Long> {
 
+    @Override
+    @EntityGraph(attributePaths = "tiers")
+    List<Tariff> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = "tiers")
+    Optional<Tariff> findById(Long id);
+
+    @EntityGraph(attributePaths = "tiers")
     @Query("SELECT t FROM Tariff t WHERE t.meterType = :meterType " +
            "AND t.effectiveDate <= :date " +
            "AND (t.endDate IS NULL OR t.endDate >= :date) " +
@@ -23,6 +33,7 @@ public interface TariffRepository extends JpaRepository<Tariff, Long> {
             @Param("meterType") MeterType meterType,
             @Param("date") LocalDate date);
 
+    @EntityGraph(attributePaths = "tiers")
     List<Tariff> findByMeterTypeOrderByVersionDesc(MeterType meterType);
 
     @Query("SELECT COALESCE(MAX(t.version), 0) FROM Tariff t WHERE t.meterType = :meterType")

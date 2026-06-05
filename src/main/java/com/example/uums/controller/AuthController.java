@@ -23,11 +23,11 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    @Operation(summary = "Register a new user")
+    @Operation(summary = "Register a new user account (automatically assigned ROLE_CUSTOMER)")
     public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody RegisterUserRequest request) {
         UserResponse user = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("User registered successfully", user));
+                .body(ApiResponse.success("Account created successfully. You have been assigned the CUSTOMER role.", user));
     }
 
     @PostMapping("/login")
