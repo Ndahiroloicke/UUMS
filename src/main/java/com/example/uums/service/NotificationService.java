@@ -1,11 +1,13 @@
 package com.example.uums.service;
 
 import com.example.uums.dto.response.NotificationResponse;
+import com.example.uums.entity.Customer;
 import com.example.uums.entity.Notification;
 import com.example.uums.exception.ResourceNotFoundException;
 import com.example.uums.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String mailFrom;
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> getNotificationsByCustomer(Long customerId) {
@@ -52,17 +57,27 @@ public class NotificationService {
                 });
     }
 
-    /** Sends email and silently logs failures (does not break the main transaction). */
+    @Transactional
+    public void saveInAppNotification(Customer customer, String message) {
+        notificationRepository.save(Notification.builder()
+                .customer(customer)
+                .message(message)
+                .isRead(false)
+                .build());
+    }
+
+    /** Sends email and logs failures without breaking the main transaction. */
     public void sendEmailSilently(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(mailFrom);
             message.setTo(to);
             message.setSubject(subject);
             message.setText(body);
             mailSender.send(message);
-            log.info("Email sent to: {}", to);
+            log.info("Email sent successfully to {}", to);
         } catch (Exception e) {
-            log.warn("Failed to send email to {}: {}", to, e.getMessage());
+            log.error("Failed to send email to {}: {}", to, e.getMessage(), e);
         }
     }
 

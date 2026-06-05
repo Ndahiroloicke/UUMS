@@ -42,8 +42,8 @@ public class PaymentService {
             throw new BusinessRuleException("Bill " + request.getBillReference() + " is already fully paid.");
         }
 
-        // Cap payment at outstanding balance (support partial payments)
         BigDecimal amountToPay = request.getAmountPaid().min(bill.getOutstandingBalance());
+        BigDecimal balanceAfterPayment = bill.getOutstandingBalance().subtract(amountToPay).max(BigDecimal.ZERO);
 
         User processedBy = getCurrentUser();
 
@@ -53,52 +53,23 @@ public class PaymentService {
                 .amountPaid(amountToPay)
                 .paymentMethod(request.getPaymentMethod())
                 .paymentDate(LocalDateTime.now())
+                .outstandingBalanceAfterPayment(balanceAfterPayment)
                 .processedBy(processedBy)
                 .build();
 
-        // Update bill
-        BigDecimal newAmountPaid = bill.getAmountPaid().add(amountToPay);
-        BigDecimal newBalance = bill.getOutstandingBalance().subtract(amountToPay);
+        bill.setAmountPaid(bill.getAmountPaid().add(amountToPay));
+        bill.setOutstandingBalance(balanceAfterPayment);
 
-        bill.setAmountPaid(newAmountPaid);
-        bill.setOutstandingBalance(newBalance.max(BigDecimal.ZERO));
-
-        // The DB trigger (BEFORE UPDATE on bills) automatically sets status=PAID when balance<=0
-        // We also set it here to keep the JPA state consistent
-        if (newBalance.compareTo(BigDecimal.ZERO) <= 0) {
+        if (balanceAfterPayment.compareTo(BigDecimal.ZERO) <= 0) {
             bill.setStatus(BillStatus.PAID);
         }
 
         billRepository.save(bill);
         Payment savedPayment = paymentRepository.save(payment);
 
-        // Send email if fully paid
-        if (bill.getStatus() == BillStatus.PAID) {
-            String period = bill.getBillingPeriod().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
-            String message = "Dear " + bill.getCustomer().getFullNames() +
-                    ",\nYour " + period + " utility bill of " + bill.getTotalAmount() +
-                    " FRW has been successfully processed.";
-            notificationService.sendEmailSilently(
-                    bill.getCustomer().getEmail(),
-                    "Payment Confirmation - " + bill.getBillReference(),
-                    message);
-        }
+        notifyCustomerOnPayment(bill, savedPayment, balanceAfterPayment);
 
-        // Re-fetch to get trigger-updated status
-        Bill refreshed = billRepository.findById(bill.getId()).orElse(bill);
-
-        return PaymentResponse.builder()
-                .id(savedPayment.getId())
-                .paymentReference(savedPayment.getPaymentReference())
-                .billId(bill.getId())
-                .billReference(bill.getBillReference())
-                .amountPaid(savedPayment.getAmountPaid())
-                .paymentMethod(savedPayment.getPaymentMethod())
-                .paymentDate(savedPayment.getPaymentDate())
-                .processedByName(processedBy != null ? processedBy.getFullNames() : null)
-                .outstandingBalance(refreshed.getOutstandingBalance())
-                .createdAt(savedPayment.getCreatedAt())
-                .build();
+        return mapToResponse(savedPayment);
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +87,32 @@ public class PaymentService {
         return paymentRepository.findByCustomerId(customerId).stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    private void notifyCustomerOnPayment(Bill bill, Payment payment, BigDecimal balanceAfterPayment) {
+        String customerName = bill.getCustomer().getFullNames();
+        String customerEmail = bill.getCustomer().getEmail();
+        String period = bill.getBillingPeriod().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+
+        if (balanceAfterPayment.compareTo(BigDecimal.ZERO) <= 0) {
+            // In-app notification is created by DB trigger (fn_notify_on_bill_paid)
+            String message = "Dear " + customerName + ",\nYour " + period +
+                    " utility bill of " + bill.getTotalAmount() +
+                    " FRW has been fully paid. Thank you!";
+            notificationService.sendEmailSilently(
+                    customerEmail,
+                    "Payment Confirmation - " + bill.getBillReference(),
+                    message);
+        } else {
+            String message = "Dear " + customerName + ",\nWe received your payment of " +
+                    payment.getAmountPaid() + " FRW for bill " + bill.getBillReference() +
+                    ". Outstanding balance: " + balanceAfterPayment + " FRW.";
+            notificationService.saveInAppNotification(bill.getCustomer(), message);
+            notificationService.sendEmailSilently(
+                    customerEmail,
+                    "Payment Received - " + bill.getBillReference(),
+                    message);
+        }
     }
 
     private User getCurrentUser() {
@@ -138,7 +135,7 @@ public class PaymentService {
                 .paymentMethod(payment.getPaymentMethod())
                 .paymentDate(payment.getPaymentDate())
                 .processedByName(payment.getProcessedBy() != null ? payment.getProcessedBy().getFullNames() : null)
-                .outstandingBalance(payment.getBill().getOutstandingBalance())
+                .outstandingBalance(payment.getOutstandingBalanceAfterPayment())
                 .createdAt(payment.getCreatedAt())
                 .build();
     }

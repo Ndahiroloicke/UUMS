@@ -33,6 +33,9 @@ public class Payment {
     @Column(name = "payment_date", nullable = false)
     private LocalDateTime paymentDate;
 
+    @Column(name = "outstanding_balance_after_payment", nullable = false, precision = 12, scale = 2)
+    private BigDecimal outstandingBalanceAfterPayment;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "processed_by_id")
     private User processedBy;
