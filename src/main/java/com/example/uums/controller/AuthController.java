@@ -7,6 +7,7 @@ import com.example.uums.dto.response.AuthResponse;
 import com.example.uums.dto.response.UserResponse;
 import com.example.uums.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "User registration and login endpoints")
+@SecurityRequirements
 public class AuthController {
 
     private final AuthService authService;
