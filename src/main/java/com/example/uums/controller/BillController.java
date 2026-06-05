@@ -69,8 +69,8 @@ public class BillController {
     }
 
     @PostMapping("/apply-penalties")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @Operation(summary = "Manually trigger overdue penalty application via DB stored procedure")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_FINANCE')")
+    @Operation(summary = "Manually trigger overdue penalty application (Admin/Finance)")
     public ResponseEntity<ApiResponse<Void>> applyPenalties() {
         billService.applyOverduePenalties();
         return ResponseEntity.ok(ApiResponse.success("Overdue penalties applied successfully", null));
