@@ -122,8 +122,8 @@ public class BillService {
 
         Bill savedBill = billRepository.save(bill);
 
-        // Send email notification asynchronously
-        String message = buildNotificationMessage(customer.getFullNames(), period, totalAmount);
+        String message = buildBillGeneratedMessage(customer.getFullNames(), period, totalAmount);
+        notificationService.saveInAppNotification(customer, message);
         notificationService.sendEmailSilently(customer.getEmail(), "Utility Bill - " + period, message);
 
         return mapToResponse(savedBill);
@@ -305,10 +305,16 @@ public class BillService {
         return String.format("BILL-%d%02d-%s", period.getYear(), period.getMonthValue(), meterNumber);
     }
 
-    private String buildNotificationMessage(String customerName, YearMonth period, BigDecimal amount) {
+    static String buildBillGeneratedMessage(String customerName, YearMonth period, BigDecimal amount) {
         return "Dear " + customerName + ",\nYour " +
                 period.format(DateTimeFormatter.ofPattern("MMMM yyyy")) +
                 " utility bill of " + amount + " FRW has been successfully processed.";
+    }
+
+    static String buildBillPaidMessage(String customerName, YearMonth period, BigDecimal amount) {
+        return "Dear " + customerName + ",\nYour " +
+                period.format(DateTimeFormatter.ofPattern("MMMM yyyy")) +
+                " utility bill of " + amount + " FRW has been fully paid. Thank you!";
     }
 
     private Bill findById(Long id) {

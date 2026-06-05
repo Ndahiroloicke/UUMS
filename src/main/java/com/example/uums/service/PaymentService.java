@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -65,11 +66,13 @@ public class PaymentService {
         }
 
         billRepository.save(bill);
+        billRepository.flush();
         Payment savedPayment = paymentRepository.save(payment);
 
-        notifyCustomerOnPayment(bill, savedPayment, balanceAfterPayment);
+        Bill refreshedBill = billRepository.findById(bill.getId()).orElse(bill);
+        notifyCustomerOnPayment(refreshedBill, savedPayment, balanceAfterPayment);
 
-        return mapToResponse(savedPayment);
+        return mapToResponse(savedPayment, refreshedBill);
     }
 
     @Transactional(readOnly = true)
@@ -92,13 +95,11 @@ public class PaymentService {
     private void notifyCustomerOnPayment(Bill bill, Payment payment, BigDecimal balanceAfterPayment) {
         String customerName = bill.getCustomer().getFullNames();
         String customerEmail = bill.getCustomer().getEmail();
-        String period = bill.getBillingPeriod().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+        YearMonth period = YearMonth.from(bill.getBillingPeriod());
 
         if (balanceAfterPayment.compareTo(BigDecimal.ZERO) <= 0) {
-            // In-app notification is created by DB trigger (fn_notify_on_bill_paid)
-            String message = "Dear " + customerName + ",\nYour " + period +
-                    " utility bill of " + bill.getTotalAmount() +
-                    " FRW has been fully paid. Thank you!";
+            String message = BillService.buildBillPaidMessage(customerName, period, bill.getTotalAmount());
+            notificationService.saveInAppNotification(bill.getCustomer(), message);
             notificationService.sendEmailSilently(
                     customerEmail,
                     "Payment Confirmation - " + bill.getBillReference(),
@@ -126,11 +127,15 @@ public class PaymentService {
     }
 
     private PaymentResponse mapToResponse(Payment payment) {
+        return mapToResponse(payment, payment.getBill());
+    }
+
+    private PaymentResponse mapToResponse(Payment payment, Bill bill) {
         return PaymentResponse.builder()
                 .id(payment.getId())
                 .paymentReference(payment.getPaymentReference())
-                .billId(payment.getBill().getId())
-                .billReference(payment.getBill().getBillReference())
+                .billId(bill.getId())
+                .billReference(bill.getBillReference())
                 .amountPaid(payment.getAmountPaid())
                 .paymentMethod(payment.getPaymentMethod())
                 .paymentDate(payment.getPaymentDate())
