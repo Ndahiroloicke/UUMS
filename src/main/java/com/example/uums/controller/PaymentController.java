@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for payment recording and history at {@code /api/payments}.
+ * Admin/Finance record full or partial payments against bills; authorized roles
+ * can view payments by bill reference or customer payment history.
+ */
 import com.example.uums.dto.request.RecordPaymentRequest;
 import com.example.uums.dto.response.ApiResponse;
 import com.example.uums.dto.response.PaymentResponse;

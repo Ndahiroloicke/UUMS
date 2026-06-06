@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO exposing full bill details: charges breakdown, payment totals, status, and approval metadata. */
 import com.example.uums.enums.BillStatus;
 import lombok.*;
 

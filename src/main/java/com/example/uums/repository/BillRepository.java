@@ -1,5 +1,10 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Bill entities with eager-loading entity graphs.
+ * Supports lookup by reference, customer, meter, billing period, status, overdue bills,
+ * and native SQL query for bills eligible for late-payment penalty application.
+ */
 import com.example.uums.entity.Bill;
 import com.example.uums.enums.BillStatus;
 import org.springframework.data.jpa.repository.EntityGraph;

@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity representing a utility bill issued to a customer for a billing period.
+ * Links customer, meter, and optional meter reading; stores consumption charges, service fee,
+ * tax, penalty, payment totals, outstanding balance, status, due date, and approval metadata.
+ */
 import com.example.uums.enums.BillStatus;
 import jakarta.persistence.*;
 import lombok.*;

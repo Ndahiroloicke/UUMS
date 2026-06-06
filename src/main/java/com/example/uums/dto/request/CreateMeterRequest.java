@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for registering a new meter against a customer — number, type, install date. */
 import com.example.uums.enums.MeterType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

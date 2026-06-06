@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for in-app billing notifications at {@code /api/notifications}.
+ * Customers list notifications (all or unread), mark single or all as read,
+ * and get unread counts. Notifications are created when bills are generated or paid.
+ */
 import com.example.uums.dto.response.ApiResponse;
 import com.example.uums.dto.response.NotificationResponse;
 import com.example.uums.service.NotificationService;

@@ -1,5 +1,10 @@
 package com.example.uums.exception;
 
+/**
+ * Global exception handler — maps all application exceptions to standardized ApiResponse JSON.
+ * Handles 404, 409, 422, 401, 403, validation errors (400 with field map), and generic 500 errors
+ * so every API error returns a consistent response shape.
+ */
 import com.example.uums.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,5 +1,10 @@
 package com.example.uums.config;
 
+/**
+ * OpenAPI / Swagger UI configuration for API documentation.
+ * Defines API title, description (WASAC/REG Utility Billing System), server URL,
+ * and JWT Bearer authentication scheme so endpoints can be tested from Swagger UI.
+ */
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;

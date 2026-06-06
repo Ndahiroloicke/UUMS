@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for creating a fixed service charge per meter type (water or electricity). */
 import com.example.uums.enums.MeterType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

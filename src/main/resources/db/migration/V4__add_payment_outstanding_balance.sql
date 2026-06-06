@@ -1,3 +1,10 @@
+-- ============================================================
+-- V4: Add payment outstanding balance snapshot column
+-- Flyway migration: adds outstanding_balance_after_payment to payments table
+-- so each payment record stores the remaining bill balance at payment time.
+-- Backfills existing rows via window function, then enforces NOT NULL.
+-- ============================================================
+
 -- Store outstanding balance snapshot at the time each payment was recorded
 ALTER TABLE payments
     ADD COLUMN outstanding_balance_after_payment DECIMAL(12, 2);

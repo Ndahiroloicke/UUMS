@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * Admin-only REST controller for system user administration at {@code /api/users}.
+ * Supports listing users, viewing profiles, updating details/status, changing roles,
+ * and deleting accounts (with guards against self-modification or self-deletion).
+ */
 import com.example.uums.dto.request.UpdateUserRequest;
 import com.example.uums.dto.request.UpdateUserRoleRequest;
 import com.example.uums.dto.response.ApiResponse;

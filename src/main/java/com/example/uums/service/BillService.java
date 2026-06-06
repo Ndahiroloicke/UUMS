@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Core billing engine — generates and manages utility bills.
+ * Computes charges from meter readings using active tariffs (flat/tier-based), service charges,
+ * and taxes; handles approval, overdue penalties (DB function), and bill/payment notifications.
+ */
 import com.example.uums.dto.request.GenerateBillRequest;
 import com.example.uums.dto.response.BillResponse;
 import com.example.uums.dto.response.PenaltyApplicationResponse;

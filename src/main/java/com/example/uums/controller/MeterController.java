@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for meter registration and management at {@code /api/meters}.
+ * Admins register meters and update status; staff and customers can query meters
+ * by ID or by customer. Each meter belongs to one customer and tracks water/electricity usage.
+ */
 import com.example.uums.dto.request.CreateMeterRequest;
 import com.example.uums.dto.response.ApiResponse;
 import com.example.uums.dto.response.MeterResponse;

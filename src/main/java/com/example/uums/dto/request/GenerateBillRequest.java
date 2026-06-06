@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for generating a bill — specifies meter ID and billing year/month. */
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

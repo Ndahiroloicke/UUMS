@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity recording a payment made against a utility bill.
+ * Stores unique payment reference, amount, method, date, remaining balance after payment,
+ * and optional reference to the staff user who processed it.
+ */
 import com.example.uums.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;

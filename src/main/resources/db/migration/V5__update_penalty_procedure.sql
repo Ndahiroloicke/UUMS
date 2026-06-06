@@ -1,3 +1,10 @@
+-- ============================================================
+-- V5: Update overdue penalty stored procedure
+-- Flyway migration: replaces apply_overdue_penalties() to respect
+-- grace_period_days from active penalty config and return count of
+-- bills penalized via an OUT parameter (REFCURSOR-based iteration).
+-- ============================================================
+
 -- Update penalty procedure to:
 -- 1. Respect grace_period_days from active penalty config
 -- 2. Return count of bills penalized (OUT parameter)

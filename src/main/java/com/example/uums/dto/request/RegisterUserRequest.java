@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for self-service user registration — names, email, phone, and password rules. */
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

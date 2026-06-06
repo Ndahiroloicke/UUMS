@@ -1,5 +1,9 @@
 -- ============================================================
 -- V1: WASAC/REG Utility Billing System — Initial Schema
+-- Flyway migration: creates all core PostgreSQL tables for UUMS.
+-- Tables: users, customers, meters, meter_readings, tariffs/tiers,
+-- service_charges, taxes, penalties, bills, payments, notifications.
+-- Also adds indexes and constraints (e.g. one reading per meter per month).
 -- ============================================================
 
 -- Users table (system login accounts)

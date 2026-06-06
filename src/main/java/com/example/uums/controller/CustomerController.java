@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for customer management at {@code /api/customers}.
+ * Admins create, update, and deactivate customers; staff can list and view records;
+ * customers can view their own profile via a dedicated endpoint.
+ */
 import com.example.uums.dto.request.CreateCustomerRequest;
 import com.example.uums.dto.request.UpdateCustomerRequest;
 import com.example.uums.dto.response.ApiResponse;

@@ -1,5 +1,9 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity defining late-payment penalty rules applied to overdue bills.
+ * Stores penalty rate, grace period days (default 30), active flag, and effective date.
+ */
 import jakarta.persistence.*;
 import lombok.*;
 

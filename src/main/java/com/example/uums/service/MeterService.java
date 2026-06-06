@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Business logic for meter registration and lifecycle management.
+ * Validates unique meter numbers, associates meters with customers, supports status updates,
+ * and provides queries by customer or across all meters.
+ */
 import com.example.uums.dto.request.CreateMeterRequest;
 import com.example.uums.dto.response.MeterResponse;
 import com.example.uums.entity.Customer;

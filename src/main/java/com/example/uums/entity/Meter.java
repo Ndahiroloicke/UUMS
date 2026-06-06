@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity representing a physical utility meter installed at a customer premises.
+ * Tracks unique meter number, type (water/electricity), installation date, status,
+ * and owns a collection of monthly meter readings.
+ */
 import com.example.uums.enums.MeterStatus;
 import com.example.uums.enums.MeterType;
 import jakarta.persistence.*;

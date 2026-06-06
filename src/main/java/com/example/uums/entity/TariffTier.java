@@ -1,5 +1,9 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity for a single consumption bracket within a tier-based tariff.
+ * Defines min/max consumption bounds, rate per unit, and display order within the tariff.
+ */
 import jakarta.persistence.*;
 import lombok.*;
 

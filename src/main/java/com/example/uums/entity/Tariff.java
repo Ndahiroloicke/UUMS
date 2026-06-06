@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity for utility pricing tariffs with versioning support.
+ * Defines meter type, tariff type (flat or tier-based), optional flat rate, effective dates,
+ * active flag, nested tariff tiers, and the user who created the tariff.
+ */
 import com.example.uums.enums.MeterType;
 import com.example.uums.enums.TariffType;
 import jakarta.persistence.*;

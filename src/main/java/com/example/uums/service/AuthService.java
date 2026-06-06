@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Business logic for user registration and login.
+ * Registers new users with BCrypt-encoded passwords and ROLE_CUSTOMER, authenticates
+ * credentials via Spring Security, validates active status, and issues JWT tokens.
+ */
 import com.example.uums.dto.request.LoginRequest;
 import com.example.uums.dto.request.RegisterUserRequest;
 import com.example.uums.dto.response.AuthResponse;

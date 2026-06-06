@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for in-app customer notifications with read/unread status. */
 import lombok.*;
 
 import java.time.LocalDateTime;

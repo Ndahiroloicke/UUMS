@@ -1,5 +1,9 @@
 -- ============================================================
 -- V2: WASAC/REG — Database Routines (Triggers, Procedures, Cursor)
+-- Flyway migration: adds PostgreSQL triggers and stored procedures.
+-- Triggers: notify on new bill, auto-set PAID when balance hits zero,
+-- notify on full payment. Procedure apply_overdue_penalties() finds
+-- overdue unpaid bills and applies active penalty rates.
 -- ============================================================
 
 -- ----------------------------------------------------------------

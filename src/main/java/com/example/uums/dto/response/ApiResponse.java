@@ -1,5 +1,9 @@
 package com.example.uums.dto.response;
 
+/**
+ * Standard API response wrapper used by all controllers and the global exception handler.
+ * Contains success flag, message, and typed data payload with static success/error factories.
+ */
 import lombok.*;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

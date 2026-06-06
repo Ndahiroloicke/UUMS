@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for defining a late-payment penalty rule — rate, grace period, and effective date. */
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;

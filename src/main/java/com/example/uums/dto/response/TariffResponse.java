@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for tariff configuration including nested tier details for tier-based pricing. */
 import com.example.uums.enums.MeterType;
 import com.example.uums.enums.TariffType;
 import lombok.*;

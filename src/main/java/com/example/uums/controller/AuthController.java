@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for public authentication endpoints at {@code /api/auth}.
+ * Handles user registration (creates ROLE_CUSTOMER accounts) and login (returns JWT).
+ * These endpoints are unauthenticated; all other API routes require a valid token.
+ */
 import com.example.uums.dto.request.LoginRequest;
 import com.example.uums.dto.request.RegisterUserRequest;
 import com.example.uums.dto.response.ApiResponse;

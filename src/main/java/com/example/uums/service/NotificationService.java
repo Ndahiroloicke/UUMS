@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Handles in-app notifications and optional email delivery for billing events.
+ * Persists notifications, manages read/unread state and counts, and sends email
+ * via SMTP without failing the main transaction if mail delivery fails.
+ */
 import com.example.uums.dto.response.NotificationResponse;
 import com.example.uums.entity.Customer;
 import com.example.uums.entity.Notification;

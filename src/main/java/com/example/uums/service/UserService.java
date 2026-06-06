@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Admin business logic for system user account management.
+ * Lists and updates users, changes roles (with self-modification guard), deletes users
+ * (preventing self-deletion), and maps User entities to UserResponse DTOs.
+ */
 import com.example.uums.dto.request.UpdateUserRequest;
 import com.example.uums.dto.request.UpdateUserRoleRequest;
 import com.example.uums.dto.response.UserResponse;

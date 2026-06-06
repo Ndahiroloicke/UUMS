@@ -1,5 +1,10 @@
 package com.example.uums.security;
 
+/**
+ * Spring Security configuration for stateless JWT-based API authentication.
+ * Permits public access to /api/auth and Swagger; requires authentication elsewhere;
+ * registers JwtAuthFilter, BCryptPasswordEncoder, and AuthenticationManager beans.
+ */
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

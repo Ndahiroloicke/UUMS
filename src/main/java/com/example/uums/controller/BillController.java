@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for utility bill lifecycle at {@code /api/bills}.
+ * Supports bill generation, approval, lookup by ID/reference/customer, customer self-service
+ * ({@code /me}), and manual overdue penalty triggers. Role access: ADMIN, FINANCE, CUSTOMER.
+ */
 import com.example.uums.dto.request.GenerateBillRequest;
 import com.example.uums.dto.response.ApiResponse;
 import com.example.uums.dto.response.BillResponse;

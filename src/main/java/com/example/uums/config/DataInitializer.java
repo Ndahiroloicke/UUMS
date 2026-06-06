@@ -1,5 +1,10 @@
 package com.example.uums.config;
 
+/**
+ * Startup data seeder that runs once when the application launches.
+ * Creates a default admin user (admin@wasac.rw) if none exists, so the system
+ * is usable immediately after first deployment without manual DB inserts.
+ */
 import com.example.uums.entity.User;
 import com.example.uums.enums.UserRole;
 import com.example.uums.enums.UserStatus;

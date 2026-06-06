@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for a single meter reading record including consumption and capturer info. */
 import lombok.*;
 
 import java.math.BigDecimal;

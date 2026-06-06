@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for defining a tax rate applied to bills (e.g. 0.18 for 18% VAT). */
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;

@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * Admin-only REST controller for billing configuration at {@code /api/tariffs}.
+ * Manages versioned pricing tariffs (flat or tier-based), service charges, taxes,
+ * and late-payment penalty rules. Only one active record per type is allowed at a time.
+ */
 import com.example.uums.dto.request.*;
 import com.example.uums.dto.response.ApiResponse;
 import com.example.uums.dto.response.TariffResponse;

@@ -1,5 +1,10 @@
 package com.example.uums.controller;
 
+/**
+ * REST controller for meter reading capture and queries at {@code /api/meter-readings}.
+ * Admin/Operator staff capture monthly consumption readings; staff and customers
+ * retrieve readings by meter or ID. Readings drive bill generation.
+ */
 import com.example.uums.dto.request.CaptureMeterReadingRequest;
 import com.example.uums.dto.response.ApiResponse;
 import com.example.uums.dto.response.MeterReadingResponse;

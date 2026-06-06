@@ -1,5 +1,9 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity for fixed service charges applied per meter type (water or electricity).
+ * Stores charge name, amount, active flag, effective date, and meter type applicability.
+ */
 import com.example.uums.enums.MeterType;
 import jakarta.persistence.*;
 import lombok.*;

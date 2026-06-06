@@ -1,5 +1,10 @@
 package com.example.uums.security;
 
+/**
+ * Servlet filter that validates JWT tokens on every HTTP request.
+ * Reads the Authorization Bearer header, parses the token, loads the user,
+ * and sets the Spring Security context; invalid tokens leave the request unauthenticated.
+ */
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

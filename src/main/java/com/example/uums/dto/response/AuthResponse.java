@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO returned after successful login or registration — carries JWT token and user profile summary. */
 import com.example.uums.enums.UserRole;
 import lombok.*;
 

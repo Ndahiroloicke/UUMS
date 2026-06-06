@@ -1,3 +1,10 @@
+-- ============================================================
+-- V7: Reconcile bill notification triggers with application layer
+-- Flyway migration: keeps notification trigger functions defined but drops
+-- bill-generation and bill-paid notification triggers (handled in Java).
+-- Reasserts trg_set_bill_paid trigger that sets status PAID when balance = 0.
+-- ============================================================
+
 -- DB routines for SRS compliance.
 -- In-app + email notifications are created by BillService and PaymentService (reliable via JPA).
 -- DB trigger below enforces bill status = PAID when outstanding_balance reaches zero.

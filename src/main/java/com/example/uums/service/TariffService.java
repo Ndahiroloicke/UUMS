@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Business logic for billing configuration — tariffs, service charges, taxes, and penalties.
+ * Creates versioned tariffs (deactivating prior versions), enforces single-active-record
+ * semantics per charge type, and maps entities to response DTOs.
+ */
 import com.example.uums.dto.request.CreatePenaltyRequest;
 import com.example.uums.dto.request.CreateServiceChargeRequest;
 import com.example.uums.dto.request.CreateTariffRequest;

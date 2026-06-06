@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for meter details including type, status, and linked customer summary. */
 import com.example.uums.enums.MeterStatus;
 import com.example.uums.enums.MeterType;
 import lombok.*;

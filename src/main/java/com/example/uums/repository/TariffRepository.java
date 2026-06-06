@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Tariff entities with eager-loaded tariff tiers.
+ * Finds active tariff by meter type and date, lists tariffs by meter type, and max version.
+ */
 import com.example.uums.entity.Tariff;
 import com.example.uums.enums.MeterType;
 import org.springframework.data.jpa.repository.EntityGraph;

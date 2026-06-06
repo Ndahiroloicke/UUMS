@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for a payment record including amount, method, and remaining bill balance. */
 import com.example.uums.enums.PaymentMethod;
 import lombok.*;
 

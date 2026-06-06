@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Business logic for capturing and retrieving meter consumption readings.
+ * Enforces active meters, one reading per month, monotonically increasing values,
+ * auto-calculates consumption, and records which user captured each reading.
+ */
 import com.example.uums.dto.request.CaptureMeterReadingRequest;
 import com.example.uums.dto.response.MeterReadingResponse;
 import com.example.uums.entity.Meter;

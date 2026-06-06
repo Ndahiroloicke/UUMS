@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Business logic for recording bill payments and updating bill balances.
+ * Caps payment to outstanding balance, generates payment references, updates bill status
+ * (PAID / PARTIALLY_PAID), and triggers in-app and email notifications on payment.
+ */
 import com.example.uums.dto.request.RecordPaymentRequest;
 import com.example.uums.dto.response.PaymentResponse;
 import com.example.uums.entity.Bill;

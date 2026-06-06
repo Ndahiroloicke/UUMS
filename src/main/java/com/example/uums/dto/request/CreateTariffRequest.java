@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for creating a versioned pricing tariff with optional tier-based consumption brackets. */
 import com.example.uums.enums.MeterType;
 import com.example.uums.enums.TariffType;
 import jakarta.validation.constraints.NotBlank;

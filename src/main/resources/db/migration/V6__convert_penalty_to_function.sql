@@ -1,3 +1,10 @@
+-- ============================================================
+-- V6: Convert penalty procedure to PostgreSQL function
+-- Flyway migration: converts apply_overdue_penalties from PROCEDURE to
+-- FUNCTION returning INTEGER so JPA/Hibernate can call it via SELECT.
+-- Preserves grace-period logic and penalty application from V5.
+-- ============================================================
+
 -- PostgreSQL PROCEDURE cannot be invoked via SELECT from JPA/Hibernate.
 -- Convert to FUNCTION so it can be called with: SELECT apply_overdue_penalties()
 

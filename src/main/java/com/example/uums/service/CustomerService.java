@@ -1,5 +1,10 @@
 package com.example.uums.service;
 
+/**
+ * Business logic for customer (utility account holder) management.
+ * Creates customers with optional user-account linkage, enforces unique national ID/email,
+ * and supports profile updates and deactivation with entity-to-DTO mapping.
+ */
 import com.example.uums.dto.request.CreateCustomerRequest;
 import com.example.uums.dto.request.UpdateCustomerRequest;
 import com.example.uums.dto.response.CustomerResponse;

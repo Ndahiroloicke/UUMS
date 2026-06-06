@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Payment entities with eager-loaded bill and processor.
+ * Finds payments by bill or by customer, ordered by payment date descending.
+ */
 import com.example.uums.entity.Payment;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

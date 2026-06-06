@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Penalty configuration entities.
+ * Finds the active penalty rule for a given date and lists all currently active penalties.
+ */
 import com.example.uums.entity.Penalty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

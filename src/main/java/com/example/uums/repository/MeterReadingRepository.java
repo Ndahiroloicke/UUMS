@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for MeterReading entities with eager-loaded meter and capturer.
+ * Queries readings by meter (latest, by year/month) ordered by reading date.
+ */
 import com.example.uums.entity.MeterReading;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

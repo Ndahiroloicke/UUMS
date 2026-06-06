@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for partial customer profile update — all fields optional. */
 import com.example.uums.enums.CustomerStatus;
 import jakarta.validation.constraints.Email;
 import lombok.*;

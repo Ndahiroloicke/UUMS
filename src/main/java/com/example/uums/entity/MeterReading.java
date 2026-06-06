@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity capturing a periodic meter reading for consumption billing.
+ * Stores previous/current reading values, computed consumption, reading date,
+ * and optional reference to the user who captured the reading.
+ */
 import jakarta.persistence.*;
 import lombok.*;
 

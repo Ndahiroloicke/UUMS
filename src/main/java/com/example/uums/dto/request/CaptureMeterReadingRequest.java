@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for capturing a new meter reading — meter ID, current reading value, and date. */
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;

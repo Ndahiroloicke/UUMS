@@ -1,5 +1,9 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity for tax rates applied to utility bills (e.g. VAT).
+ * Stores tax name, decimal rate, active flag, and effective date.
+ */
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for ServiceCharge configuration entities.
+ * Finds the active service charge for a meter type on a given date and lists active charges.
+ */
 import com.example.uums.entity.ServiceCharge;
 import com.example.uums.enums.MeterType;
 import org.springframework.data.jpa.repository.JpaRepository;

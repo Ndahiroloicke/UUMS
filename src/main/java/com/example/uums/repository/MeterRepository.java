@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Meter entities with eager-loaded customer.
+ * Supports lookup by meter number, customer, status, and meter type.
+ */
 import com.example.uums.entity.Meter;
 import com.example.uums.enums.MeterStatus;
 import com.example.uums.enums.MeterType;

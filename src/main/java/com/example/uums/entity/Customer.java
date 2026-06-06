@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity representing a utility customer (account holder).
+ * Stores identity and contact info, optional link to a User login account,
+ * and owns related meters, bills, and notifications.
+ */
 import com.example.uums.enums.CustomerStatus;
 import jakarta.persistence.*;
 import lombok.*;

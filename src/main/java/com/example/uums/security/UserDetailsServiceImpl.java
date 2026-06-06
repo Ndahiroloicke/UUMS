@@ -1,5 +1,10 @@
 package com.example.uums.security;
 
+/**
+ * Spring Security UserDetailsService implementation.
+ * Loads users from the database by email for authentication; throws
+ * UsernameNotFoundException when no matching account exists.
+ */
 import com.example.uums.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

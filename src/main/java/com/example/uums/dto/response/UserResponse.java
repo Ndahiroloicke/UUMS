@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for system user profile data (excludes password and sensitive fields). */
 import com.example.uums.enums.UserRole;
 import com.example.uums.enums.UserStatus;
 import lombok.*;

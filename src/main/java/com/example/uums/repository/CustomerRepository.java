@@ -1,5 +1,10 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Customer entities.
+ * Provides existence checks on national ID and email, and lookup by ID, email,
+ * linked user account, or customer status.
+ */
 import com.example.uums.entity.Customer;
 import com.example.uums.entity.User;
 import com.example.uums.enums.CustomerStatus;

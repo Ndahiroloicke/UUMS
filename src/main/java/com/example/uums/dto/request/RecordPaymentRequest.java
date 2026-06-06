@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for recording a payment — bill reference, amount paid, and payment method. */
 import com.example.uums.enums.PaymentMethod;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

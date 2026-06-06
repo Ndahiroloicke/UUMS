@@ -1,5 +1,10 @@
 package com.example.uums.security;
 
+/**
+ * JWT token utility — creates, parses, and validates JSON Web Tokens.
+ * Uses configured secret and expiration; embeds username and role claims for
+ * stateless authentication across API requests.
+ */
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

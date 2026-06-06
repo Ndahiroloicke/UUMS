@@ -1,5 +1,10 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity for system login accounts implementing Spring Security UserDetails.
+ * Stores credentials, role, status, and timestamps; email serves as username
+ * and role name is exposed as the security authority.
+ */
 import com.example.uums.enums.UserRole;
 import com.example.uums.enums.UserStatus;
 import jakarta.persistence.*;

@@ -1,5 +1,6 @@
 package com.example.uums.dto.request;
 
+/** Request body for admin partial user profile update — names, phone, or status. */
 import com.example.uums.enums.UserStatus;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

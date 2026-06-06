@@ -1,5 +1,6 @@
 package com.example.uums.dto.response;
 
+/** Response DTO for customer profile data returned by customer API endpoints. */
 import com.example.uums.enums.CustomerStatus;
 import lombok.*;
 

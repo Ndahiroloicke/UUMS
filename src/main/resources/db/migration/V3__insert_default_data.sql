@@ -1,5 +1,8 @@
 -- ============================================================
 -- V3: Default seed data — initial tariffs, tax, service charges
+-- Flyway migration: inserts reference billing configuration for first run.
+-- Seeds tier-based water/electricity tariffs, fixed service charges,
+-- 18% VAT tax, and 5% late-payment penalty (30-day grace), effective 2025-01-01.
 -- ============================================================
 
 -- Default Water Tariff (tier-based)

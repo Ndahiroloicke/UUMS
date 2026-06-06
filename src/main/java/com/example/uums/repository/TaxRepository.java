@@ -1,5 +1,9 @@
 package com.example.uums.repository;
 
+/**
+ * Spring Data JPA repository for Tax configuration entities.
+ * Finds the active tax for a given date and lists all currently active tax records.
+ */
 import com.example.uums.entity.Tax;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

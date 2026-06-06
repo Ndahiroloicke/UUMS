@@ -1,5 +1,9 @@
 package com.example.uums.entity;
 
+/**
+ * JPA entity for in-app customer notifications about billing events.
+ * Stores message text, read/unread flag, creation timestamp, and belongs to a customer.
+ */
 import jakarta.persistence.*;
 import lombok.*;
 
